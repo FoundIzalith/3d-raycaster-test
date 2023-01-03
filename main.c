@@ -7,6 +7,7 @@
 #define pi 3.14159
 #define pi2 pi/2
 #define pi3 3*pi/2
+#define degreeRad 0.0174533 //1 degree in radians
 
 void drawMap2D() {
     int xo, yo;
@@ -46,14 +47,16 @@ float dist(float ax, float ay, float bx, float by, float angle) {
     return sqrt((bx - ax) * (bx - ax) + (by - ay) * (by - ay));
 }
 
-void drawRays3D() {
+void drawRays3D(int fov) {
     int mx, my, mp, depthOfField;
     float rayX, rayY, rayAngle, xoffset, yoffset, aTan, nTan;
     float disH, hX, hY, disV, vX, vY;
 
-    rayAngle = player.angle; 
+    rayAngle = player.angle - degreeRad * (fov / 2);
+    if(rayAngle < 0) rayAngle += 2 * pi;
+    if(rayAngle > 2 * pi) rayAngle -= 2 * pi;
 
-    for(int i = 0; i < 1; i++) {
+    for(int i = 0; i < fov; i++) {
         //Horizontal lines 
         depthOfField = 0;
         aTan = -1/tan(rayAngle);
@@ -155,6 +158,10 @@ void drawRays3D() {
         glVertex2i(player.x, player.y);
         glVertex2i(rayX, rayY);
         glEnd();
+
+        rayAngle += degreeRad;
+        if(rayAngle < 0) rayAngle += 2 * pi;
+        if(rayAngle > 2 * pi) rayAngle -= 2 * pi;
     }
 
 }
@@ -163,7 +170,7 @@ void display() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     drawMap2D();
     drawPlayer();
-    drawRays3D();
+    drawRays3D(90);
     glutSwapBuffers();
 }
 
