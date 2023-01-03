@@ -50,7 +50,7 @@ float dist(float ax, float ay, float bx, float by, float angle) {
 void drawRays3D(int fov) {
     int mx, my, mp, depthOfField;
     float rayX, rayY, rayAngle, xoffset, yoffset, aTan, nTan;
-    float disH, hX, hY, disV, vX, vY;
+    float disH, hX, hY, disV, vX, vY, distT;
 
     rayAngle = player.angle - degreeRad * (fov / 2);
     if(rayAngle < 0) rayAngle += 2 * pi;
@@ -148,17 +148,39 @@ void drawRays3D(int fov) {
         if(disH < disV) {
             rayX = hX;
             rayY = hY; 
+            distT = disH; 
+            glColor3f(1, 0, 0);
         } else {
             rayX = vX;
             rayY = vY;
+            distT = disV; 
+            glColor3f(0.7, 0, 0);
         }
-        glColor3f(1, 0, 0);
+        //Draw rays
         glLineWidth(3);
         glBegin(GL_LINES);
         glVertex2i(player.x, player.y);
         glVertex2i(rayX, rayY);
         glEnd();
 
+        //Render 3d walls 
+        float flatAngle = player.angle - rayAngle;
+        if (flatAngle < 0) flatAngle += 2 * pi;
+        if (flatAngle > 2 * pi) flatAngle -= 2 * pi;
+        distT = distT * cos(flatAngle);
+            //flatAngle fixes the fish eye effect
+
+        float lineH = (map.s * 320)/distT;
+        if(lineH > 320) lineH = 320;
+        float lineO = 160 - lineH / 2;
+
+        glLineWidth(8);
+        glBegin(GL_LINES);
+        glVertex2i(i * 8 + 530, lineO);
+        glVertex2i(i * 8 + 530, lineH + lineO);
+        glEnd();
+
+        //Move ray over
         rayAngle += degreeRad;
         if(rayAngle < 0) rayAngle += 2 * pi;
         if(rayAngle > 2 * pi) rayAngle -= 2 * pi;
@@ -170,7 +192,7 @@ void display() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     drawMap2D();
     drawPlayer();
-    drawRays3D(90);
+    drawRays3D(60);
     glutSwapBuffers();
 }
 
