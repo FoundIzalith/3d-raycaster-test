@@ -4,7 +4,9 @@
 #include <math.h>
 #include "gameData.h"
 
-float pi = 3.14159;
+#define pi 3.14159
+#define pi2 pi/2
+#define pi3 3*pi/2
 
 void drawMap2D() {
     int xo, yo;
@@ -39,10 +41,123 @@ void drawPlayer() {
     glEnd();
 }
 
+float dist(float ax, float ay, float bx, float by, float angle) {
+    //Return hypoteneuse 
+    return sqrt((bx - ax) * (bx - ax) + (by - ay) * (by - ay));
+}
+
+void drawRays3D() {
+    int mx, my, mp, depthOfField;
+    float rayX, rayY, rayAngle, xoffset, yoffset, aTan, nTan;
+    float disH, hX, hY, disV, vX, vY;
+
+    rayAngle = player.angle; 
+
+    for(int r = 0; r < 1; r++) {
+        //Horizontal lines 
+        depthOfField = 0;
+        aTan = -1/tan(rayAngle);
+        disH = 1000000;
+        hX = player.x;
+        hY = player.y;
+        if(rayAngle > pi) { //If looking down...
+            //We round the ray angle to the nearest 64th value
+            //We do this by bit shifting down 6 bits, then bit shifting those
+            //6 bits back 
+            rayY = (((int)player.y>>6)<<6) - 0.0001;
+            rayX = (player.y - rayY) * aTan + player.x;
+            yoffset = -64;
+            xoffset = -yoffset * aTan;
+        }
+        if(rayAngle < pi) { //If looking up...
+            rayY = (((int)player.y>>6)<<6) + 64;
+            rayX = (player.y - rayY) * aTan + player.x;
+            yoffset = -64;
+            xoffset = -yoffset * aTan;
+        }
+        if(rayAngle == 0 || rayAngle == pi) { //Looking straight ahead
+            rayX = player.x;
+            rayY = player.y;
+            depthOfField = 8;
+        }
+        while(depthOfField < 8) {
+            mx = (int) (rayX)>>6;
+            my = (int) (rayY)>>6;
+            mp = my * map.x + mx; 
+
+            if(mp > 0 && mp < map.x * map.y && grid[mp] == 1) depthOfField = 8; //hit wall
+            else {
+                rayX += xoffset;
+                rayY += yoffset; 
+                hX = rayX;
+                hY = rayY; 
+                dist(player.x, player.y, hX, hY, rayAngle);
+                depthOfField += 1;
+            }
+        }
+
+        //Vertical lines 
+        depthOfField = 0;
+        nTan = -tan(rayAngle);
+        disV = 1000000;
+        vX = player.x;
+        vY = player.y; 
+        if(rayAngle > pi2 && rayAngle < pi3) { //If looking left...
+            rayX = (((int)player.x>>6)<<6) - 0.0001;
+            rayY = (player.x - rayX) * nTan + player.y;
+            xoffset = -64;
+            yoffset = -xoffset * nTan;
+        }
+        if(rayAngle < pi2 || rayAngle > pi3) { //If looking right...
+            rayX = (((int)player.x>>6)<<6) + 64;
+            rayY = (player.x - rayX) * nTan + player.y;
+            xoffset = -64;
+            yoffset = -xoffset * nTan;
+        }
+        if(rayAngle == 0 || rayAngle == pi) { //Looking straight ahead
+            rayX = player.x;
+            rayY = player.y;
+            depthOfField = 8;
+        }
+        while(depthOfField < 8) {
+            mx = (int) (rayX)>>6;
+            my = (int) (rayY)>>6;
+            mp = my * map.x + mx; 
+
+            if(mp > 0 && mp < map.x * map.y && grid[mp] == 1) depthOfField = 8; //hit wall
+            else {
+                rayX += xoffset;
+                rayY += yoffset; 
+                vX = rayX;
+                vY = rayY; 
+                dist(player.x, player.y, vX, vY, rayAngle);
+                depthOfField += 1;
+            }
+        }
+
+        //Draw shortest line
+        if(disH < disV) {
+            rayX = hX;
+            rayY = hY; 
+        } else {
+            rayX = vX;
+            rayY = vY;
+        }
+        glColor3f(1, 0, 0);
+        glLineWidth(3);
+        glBegin(GL_LINES);
+        glVertex2i(player.x, player.y);
+        glVertex2i(rayX, rayY);
+        glEnd();
+    }
+
+}
+
 void display() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     drawMap2D();
     drawPlayer();
+    drawRays3D();
     glutSwapBuffers();
 }
 
