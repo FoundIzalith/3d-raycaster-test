@@ -53,7 +53,7 @@ void drawRays3D() {
 
     rayAngle = player.angle; 
 
-    for(int r = 0; r < 1; r++) {
+    for(int i = 0; i < 1; i++) {
         //Horizontal lines 
         depthOfField = 0;
         aTan = -1/tan(rayAngle);
@@ -72,7 +72,7 @@ void drawRays3D() {
         if(rayAngle < pi) { //If looking up...
             rayY = (((int)player.y>>6)<<6) + 64;
             rayX = (player.y - rayY) * aTan + player.x;
-            yoffset = -64;
+            yoffset = 64;
             xoffset = -yoffset * aTan;
         }
         if(rayAngle == 0 || rayAngle == pi) { //Looking straight ahead
@@ -85,13 +85,16 @@ void drawRays3D() {
             my = (int) (rayY)>>6;
             mp = my * map.x + mx; 
 
-            if(mp > 0 && mp < map.x * map.y && grid[mp] == 1) depthOfField = 8; //hit wall
+            if(mp > 0 && mp < map.x * map.y && grid[mp] == 1) {
+                //hit wall
+                hX = rayX;
+                hY = rayY; 
+                disH = dist(player.x, player.y, hX, hY, rayAngle);
+                depthOfField = 8; 
+            }
             else {
                 rayX += xoffset;
                 rayY += yoffset; 
-                hX = rayX;
-                hY = rayY; 
-                dist(player.x, player.y, hX, hY, rayAngle);
                 depthOfField += 1;
             }
         }
@@ -111,7 +114,7 @@ void drawRays3D() {
         if(rayAngle < pi2 || rayAngle > pi3) { //If looking right...
             rayX = (((int)player.x>>6)<<6) + 64;
             rayY = (player.x - rayX) * nTan + player.y;
-            xoffset = -64;
+            xoffset = 64;
             yoffset = -xoffset * nTan;
         }
         if(rayAngle == 0 || rayAngle == pi) { //Looking straight ahead
@@ -124,13 +127,16 @@ void drawRays3D() {
             my = (int) (rayY)>>6;
             mp = my * map.x + mx; 
 
-            if(mp > 0 && mp < map.x * map.y && grid[mp] == 1) depthOfField = 8; //hit wall
-            else {
-                rayX += xoffset;
-                rayY += yoffset; 
+            if(mp > 0 && mp < map.x * map.y && grid[mp] == 1) {
+                //Hit wall
                 vX = rayX;
                 vY = rayY; 
-                dist(player.x, player.y, vX, vY, rayAngle);
+                disV = dist(player.x, player.y, vX, vY, rayAngle);
+                depthOfField = 8;
+            }
+            else { 
+                rayX += xoffset;
+                rayY += yoffset; 
                 depthOfField += 1;
             }
         }
