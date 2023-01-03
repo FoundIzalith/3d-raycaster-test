@@ -38,10 +38,24 @@ void display() {
 }
 
 void checkKeyboard(unsigned char key, int x, int y) {
-    if(key=='a') player.px -= 5;
-    if(key=='d') player.px += 5;
-    if(key=='w') player.py -= 5;
-    if(key=='s') player.py += 5;
+    switch(key) {
+        case 27:
+            glutDestroyWindow(glutGetWindow());
+            exit(0);
+            break;
+        case 97: //a
+            player.px -= 5;
+            break;
+        case 100: //d
+            player.px += 5;
+            break;
+        case 119: //w
+            player.py -= 5;
+            break;
+        case 115: //s
+            player.py += 5;
+            break;
+    }
     glutPostRedisplay();
 }
 
