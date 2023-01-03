@@ -1,7 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <GL/glut.h>
+#include <math.h>
 #include "gameData.h"
+
+float pi = 3.14159;
 
 void drawMap2D() {
     int xo, yo;
@@ -26,7 +29,13 @@ void drawPlayer() {
     glColor3f(1, 1, 0); //yellow
     glPointSize(8);
     glBegin(GL_POINTS);
-    glVertex2i(player.px, player.py);
+    glVertex2i(player.x, player.y);
+    glEnd();
+
+    glLineWidth(3);
+    glBegin(GL_LINES);
+    glVertex2i(player.x, player.y);
+    glVertex2i(player.x + player.deltaX * 5, player.y + player.deltaY * 5);
     glEnd();
 }
 
@@ -39,21 +48,29 @@ void display() {
 
 void checkKeyboard(unsigned char key, int x, int y) {
     switch(key) {
-        case 27:
+        case 27: //escape; close program
             glutDestroyWindow(glutGetWindow());
             exit(0);
             break;
         case 97: //a
-            player.px -= 5;
+            player.angle -= 0.1;
+            if(player.angle < 0) player.angle += 2*pi;
+            player.deltaX = cos(player.angle) * 5;
+            player.deltaY = sin(player.angle) * 5;
             break;
         case 100: //d
-            player.px += 5;
+            player.angle += 0.1;
+            if(player.angle > 2 * pi) player.angle -= 2*pi;
+            player.deltaX = cos(player.angle) * 5;
+            player.deltaY = sin(player.angle) * 5;
             break;
         case 119: //w
-            player.py -= 5;
+            player.x += player.deltaX;
+            player.y += player.deltaY; 
             break;
         case 115: //s
-            player.py += 5;
+            player.x -= player.deltaX;
+            player.y -= player.deltaY;
             break;
     }
     glutPostRedisplay();
@@ -62,8 +79,10 @@ void checkKeyboard(unsigned char key, int x, int y) {
 void init() {
     glClearColor(0.3, 0.3, 0.3, 0);
     gluOrtho2D(0, 1024, 512, 0);
-    player.px = 300;
-    player.py = 300;
+    player.x = 300;
+    player.y = 300;
+    player.deltaX = cos(player.angle) * 5;
+    player.deltaY = sin(player.angle) * 5;
 }
 
 int main(int argc, char* argv[]) {

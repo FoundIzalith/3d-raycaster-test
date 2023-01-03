@@ -1,5 +1,5 @@
 struct player_t {
-    float px, py;
+    float x, y, deltaX, deltaY, angle;
 } player; 
 
 struct map_t {
